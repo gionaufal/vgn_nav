@@ -15,16 +15,20 @@ def find_stop(input)
   end
 end
 
+def format_stops(stops)
+  stops.map.with_index do |stop, index|
+    "[#{index}] - #{stop[:name]} with #{stop[:transports]} "
+  end
+end
+
 def find_next_transports(id)
   uri = URI("https://start.vag.de/dm/api/v1/abfahrten/vgn/#{id}")
   result = JSON.parse(Net::HTTP.get(uri))
   result['Abfahrten'].map do |trip|
-    {
-      time: Time.parse(trip['AbfahrtszeitIst']).strftime("%H:%M"),
-      destination: trip['Richtungstext'],
-      line: trip['Linienname'],
-      transport: trip['Produkt']
-    }
+    scheduled = Time.parse(trip['AbfahrtszeitIst'])
+    time_to_scheduled = (scheduled - Time.now) / 60
+
+    "In #{time_to_scheduled.to_i} minutes, #{trip['Produkt']} line #{trip['Linienname']} to #{trip['Richtungstext']} at #{scheduled.strftime('%H:%M')}"
   end
 end
 
@@ -32,10 +36,11 @@ end
 
 OptionParser.new do |opts|
   opts.on("-f",  "--find STOP", "Find the next transport in given stop") do |input|
-    puts find_stop(input)
-    puts 'Type the id of the stop'
-    id = gets.chomp
+    stops = find_stop(input)
+    puts format_stops(stops)
+    puts 'Chose the desired stop'
+    id = gets.chomp.to_i
     puts 'These are the next transports at this stop: '
-    puts find_next_transports(id)
+    puts find_next_transports(stops[id][:id])
   end
 end.parse!
