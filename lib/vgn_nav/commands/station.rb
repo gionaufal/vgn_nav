@@ -18,12 +18,13 @@ module VgnNav
         name = @options[:station]
         name = prompt.ask('Type the name of the station: ') if name.nil?
 
-        stations = VgnNav::find_station(name)
+        stations = VgnNav.find_station(name)
 
-        id = prompt.select('Select the station', VgnNav::format_stations(stations)).split(' ').first.to_i
+        id = 0 if stations.size == 1
+        id = prompt.select('Select the station', VgnNav.format_stations(stations)).split(' ').first.to_i unless id
 
         output.puts 'These are the next transports at this station: '
-        output.puts VgnNav::find_next_transports(stations[id][:id])
+        output.puts VgnNav.next_departures(stations[id][:id])
       end
     end
   end
