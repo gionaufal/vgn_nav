@@ -1,14 +1,15 @@
 # frozen_string_literal: true
 
+require 'time'
 require 'vgn_nav/version'
+require 'vgn_nav/services/http'
 
 module VgnNav
   class Error < StandardError; end
 
   class << self
     def find_station(input)
-      uri = URI("https://start.vag.de/dm/api/v1/haltestellen/vgn?name=#{input}")
-      result = JSON.parse(Net::HTTP.get(uri))
+      result = VgnNav::Http.get('haltestellen', "?name=#{input}")
       result['Haltestellen'].map do |station|
         {
           name: station['Haltestellenname'],
@@ -25,8 +26,7 @@ module VgnNav
     end
 
     def next_departures(id)
-      uri = URI("https://start.vag.de/dm/api/v1/abfahrten/vgn/#{id}")
-      result = JSON.parse(Net::HTTP.get(uri))
+      result = VgnNav::Http.get('abfahrten', "/#{id}")
       result['Abfahrten'].map do |trip|
         scheduled = Time.parse(trip['AbfahrtszeitIst'])
         time_to_scheduled = ((scheduled - Time.now) / 60).to_i

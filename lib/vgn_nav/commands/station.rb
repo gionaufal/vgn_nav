@@ -2,10 +2,6 @@
 
 require_relative '../command'
 require_relative '../../vgn_nav.rb'
-require 'net/http'
-require 'json'
-require 'time'
-require 'pry-byebug'
 
 module VgnNav
   module Commands
@@ -21,9 +17,11 @@ module VgnNav
         stations = VgnNav.find_station(name)
 
         id = 0 if stations.size == 1
-        id = prompt.select('Select the station', VgnNav.format_stations(stations)).split(' ').first.to_i unless id
+        id = prompt
+              .select('Select the station', VgnNav.format_stations(stations))
+              .split(' ').first.to_i unless id
 
-        output.puts 'These are the next transports at this station: '
+        output.puts 'These are the next departures at this station: '
         output.puts VgnNav.next_departures(stations[id][:id])
       end
     end
